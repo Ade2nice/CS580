@@ -87,17 +87,94 @@ def depthFirstSearch(problem):
     print("Start's successors:", problem.getSuccessors(problem.getStartState()))
     """
     "*** YOUR CODE HERE ***"
-    util.raiseNotDefined()
+    closed = {}  # elements are (state: (prev_state, prev_action))
+    fringe = util.Stack()
+    fringe.push((problem.getStartState(), None, None))  # (state,
+    # prev_state, prev_action)
+    while True:
+        if not fringe:
+            print('Fringe empty')
+            return
+        node = fringe.pop()
+        state, prev_state, prev_action = node
+        if problem.isGoalState(state):
+            print('Found the goal')
+            # Reconstruct the path
+            _, p_s, p_a = node
+            actions = []
+            while p_a is not None:
+                actions.append(p_a)
+                p_s, p_a = closed[p_s]
+            actions = actions[::-1]
+            print(actions)
+            return actions
+        if state not in closed:
+            closed[state] = (prev_state, prev_action)
+            for successor, action, _ in problem.getSuccessors(state):
+                fringe.push((successor, state, action))
+    # util.raiseNotDefined()
 
 def breadthFirstSearch(problem):
     """Search the shallowest nodes in the search tree first."""
     "*** YOUR CODE HERE ***"
-    util.raiseNotDefined()
+    closed = {}  # elements are (state: (prev_state, prev_action))
+    fringe = util.Queue()
+    fringe.push((problem.getStartState(), None, None))  # (state,
+    # prev_state, prev_action)
+    while True:
+        if not fringe:
+            print('Fringe empty')
+            return
+        node = fringe.pop()
+        state, prev_state, prev_action = node
+        if problem.isGoalState(state):
+            print('Found the goal')
+            # Reconstruct the path
+            _, p_s, p_a = node
+            actions = []
+            while p_a is not None:
+                actions.append(p_a)
+                p_s, p_a = closed[p_s]
+            actions = actions[::-1]
+            print(actions)
+            return actions
+        if state not in closed:
+            closed[state] = (prev_state, prev_action)
+            for successor, action, _ in problem.getSuccessors(state):
+                fringe.push((successor, state, action))
+    # util.raiseNotDefined()
 
 def uniformCostSearch(problem):
     """Search the node of least total cost first."""
     "*** YOUR CODE HERE ***"
-    util.raiseNotDefined()
+    closed = {}  # elements are (state: (prev_state, prev_action))
+    fringe = util.PriorityQueue()
+    fringe.push((problem.getStartState(), None, None, 0), 0)  # (state,
+    # prev_state, prev_action, g_value)
+
+    while True:
+        if not fringe:
+            print('Fringe Empty: Failure')
+            return
+        node = fringe.pop()
+        state, prev_state, prev_action, g = node
+        if problem.isGoalState(state):
+            print('Found the goal')
+            # Reconstruct the path
+            _, p_s, p_a, _ = node
+            actions = []
+            while p_a is not None:
+                actions.append(p_a)
+                p_s, p_a = closed[p_s]
+            actions = actions[::-1]
+            print(actions)
+            return actions
+        if state not in closed:
+            closed[state] = (prev_state, prev_action)
+            for successor, action, cost in problem.getSuccessors(state):
+                g_new = g + cost
+                fringe.push((successor, state, action, g_new), g_new)
+    # util.raiseNotDefined()
 
 def nullHeuristic(state, problem=None):
     """
@@ -109,7 +186,35 @@ def nullHeuristic(state, problem=None):
 def aStarSearch(problem, heuristic=nullHeuristic):
     """Search the node that has the lowest combined cost and heuristic first."""
     "*** YOUR CODE HERE ***"
-    util.raiseNotDefined()
+    closed = {}  # elements are (state: (prev_state, prev_action))
+    fringe = util.PriorityQueue()
+    fringe.push((problem.getStartState(), None, None, 0),
+                heuristic(problem.getStartState(), problem))
+
+    while True:
+        if not fringe:
+            print('Fringe Empty: Failure')
+            return
+        node = fringe.pop()
+        state, prev_state, prev_action, g = node
+        if problem.isGoalState(state):
+            print('Found the goal')
+            # Reconstruct the path
+            _, p_s, p_a, _ = node
+            actions = []
+            while p_a is not None:
+                actions.append(p_a)
+                p_s, p_a = closed[p_s]
+            actions = actions[::-1]
+            print(actions)
+            return actions
+        if state not in closed:
+            closed[state] = (prev_state, prev_action)
+            for successor, action, cost in problem.getSuccessors(state):
+                g_new = g + cost
+                f = g_new + heuristic(successor, problem)
+                fringe.push((successor, state, action, g_new), f)
+    # util.raiseNotDefined()
 
 
 # Abbreviations
