@@ -93,12 +93,10 @@ def depthFirstSearch(problem):
     # prev_state, prev_action)
     while True:
         if not fringe:
-            print('Fringe empty')
             return
         node = fringe.pop()
         state, prev_state, prev_action = node
         if problem.isGoalState(state):
-            print('Found the goal')
             # Reconstruct the path
             _, p_s, p_a = node
             actions = []
@@ -106,7 +104,6 @@ def depthFirstSearch(problem):
                 actions.append(p_a)
                 p_s, p_a = closed[p_s]
             actions = actions[::-1]
-            print(actions)
             return actions
         if state not in closed:
             closed[state] = (prev_state, prev_action)
@@ -123,12 +120,10 @@ def breadthFirstSearch(problem):
     # prev_state, prev_action)
     while True:
         if not fringe:
-            print('Fringe empty')
             return
         node = fringe.pop()
         state, prev_state, prev_action = node
         if problem.isGoalState(state):
-            print('Found the goal')
             # Reconstruct the path
             _, p_s, p_a = node
             actions = []
@@ -136,7 +131,6 @@ def breadthFirstSearch(problem):
                 actions.append(p_a)
                 p_s, p_a = closed[p_s]
             actions = actions[::-1]
-            print(actions)
             return actions
         if state not in closed:
             closed[state] = (prev_state, prev_action)
@@ -154,12 +148,10 @@ def uniformCostSearch(problem):
 
     while True:
         if not fringe:
-            print('Fringe Empty: Failure')
             return
         node = fringe.pop()
         state, prev_state, prev_action, g = node
         if problem.isGoalState(state):
-            print('Found the goal')
             # Reconstruct the path
             _, p_s, p_a, _ = node
             actions = []
@@ -167,7 +159,6 @@ def uniformCostSearch(problem):
                 actions.append(p_a)
                 p_s, p_a = closed[p_s]
             actions = actions[::-1]
-            print(actions)
             return actions
         if state not in closed:
             closed[state] = (prev_state, prev_action)
@@ -193,12 +184,10 @@ def aStarSearch(problem, heuristic=nullHeuristic):
 
     while True:
         if not fringe:
-            print('Fringe Empty: Failure')
             return
         node = fringe.pop()
         state, prev_state, prev_action, g = node
         if problem.isGoalState(state):
-            print('Found the goal')
             # Reconstruct the path
             _, p_s, p_a, _ = node
             actions = []
@@ -206,7 +195,6 @@ def aStarSearch(problem, heuristic=nullHeuristic):
                 actions.append(p_a)
                 p_s, p_a = closed[p_s]
             actions = actions[::-1]
-            print(actions)
             return actions
         if state not in closed:
             closed[state] = (prev_state, prev_action)
