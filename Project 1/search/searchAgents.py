@@ -375,6 +375,7 @@ def cornersHeuristic(state, problem):
     walls = problem.walls # These are the walls of the maze, as a Grid (game.py)
 
     "*** YOUR CODE HERE ***"
+    # Distance between agent and the farthest corner
     d = 0
     for i in range(len(corners)):
         if not state[1][i]:
@@ -474,7 +475,11 @@ def foodHeuristic(state, problem):
     """
     position, foodGrid = state
     "*** YOUR CODE HERE ***"
-    # Nodes Expanded: 7798
+    # Nodes Expanded: 423
+    # Using heuristicInfo dictionary to store initial food locations and
+    # a 2D grid representing the mazedistance between any pair of food (computed only once)
+    # heuristic is the max maze distance between any 2 remaining food + the shortest
+    # manhattan distance from the angent to one of thoose two points
     if not problem.heuristicInfo:
         foodlocs = foodGrid.asList()
         maxdist = foodGrid.height * foodGrid.width
@@ -485,27 +490,31 @@ def foodHeuristic(state, problem):
                 if distlist[y][x] < maxdist:
                     distlist[x][y] = distlist[y][x]
                 else:
-                    distlist[x][y] = util.manhattanDistance(foodlocs[x],
-                                                            foodlocs[y])
+                    distlist[x][y] = mazeDistance(foodlocs[x], foodlocs[y],
+                                                  problem.startingGameState)
 
-        [print(col) for col in distlist]
         problem.heuristicInfo['distlist'] = distlist
         problem.heuristicInfo['initial_food_locs'] = foodlocs
 
     foodlocs = foodGrid.asList()
-    foodDist = 0
+    foodDist = -1
+    max_food_dist_pair = ()
     for foodloc1 in foodlocs:
         for foodloc2 in foodlocs:
             id1 = problem.heuristicInfo['initial_food_locs'].index(foodloc1)
             id2 = problem.heuristicInfo['initial_food_locs'].index(foodloc2)
-            foodDist = max(foodDist, problem.heuristicInfo['distlist'][id1][id2])
+            dist = problem.heuristicInfo['distlist'][id1][id2]
+            if dist > foodDist:
+                foodDist = dist
+                max_food_dist_pair = (foodloc1, foodloc2)
 
-    agentFoodDist = float("inf")
-    for foodloc in foodlocs:
-        agentFoodDist = min(agentFoodDist, util.manhattanDistance(position, foodloc))
-    if agentFoodDist == float("inf"): agentFoodDist = 0
+    if foodDist == -1:
+        return 0  # goal
 
-    return agentFoodDist + foodDist
+    agentFoodDist = min(util.manhattanDistance(position, max_food_dist_pair[0]),
+                        util.manhattanDistance(position, max_food_dist_pair[1]))
+
+    return foodDist + agentFoodDist
     # return 0
 
 class ClosestDotSearchAgent(SearchAgent):
@@ -574,7 +583,7 @@ class AnyFoodSearchProblem(PositionSearchProblem):
         x,y = state
 
         "*** YOUR CODE HERE ***"
-        return self.food[x][y] == True
+        return self.food[x][y]
         # util.raiseNotDefined()
 
 def mazeDistance(point1, point2, gameState):
