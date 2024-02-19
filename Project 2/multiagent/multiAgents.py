@@ -16,6 +16,7 @@ from util import manhattanDistance
 from game import Directions
 import random, util
 
+
 from game import Agent
 
 class ReflexAgent(Agent):
@@ -74,41 +75,21 @@ class ReflexAgent(Agent):
         newScaredTimes = [ghostState.scaredTimer for ghostState in newGhostStates]
 
         "*** YOUR CODE HERE ***"
-
-        # Calculate the Manhattan distance between newPos and a given position.
-        distToPacman = partial(manhattanDistance, newPos)
-
-        # Define a function to calculate the score for a ghost based on its distance to Pacman.
-        def ghostF(ghost):
-            dist = distToPacman(ghost.getPosition())
-            # If the ghost is scared and can reach Pacman, assign a high score (infinite).
-            if ghost.scaredTimer > dist:
-                return float('inf')
-            # If the ghost is within 1 step of Pacman, assign a low score (negative infinite).
-            if dist <= 1:
-                return float('-inf')
-            # Otherwise, the ghost doesn't affect the score (0).
-            return 0
-
-        # Calculate the minimum ghost score among all newGhostStates.
-        ghostScore = min(map(ghostF, newGhostStates))
-
-        # Check if there is any food left before calculating distToClosestFood.
-        if newFood.asList():
-            # Calculate the minimum Manhattan distance between newPos and remaining food positions.
-            distToClosestFood = min(manhattanDistance(newPos, foodPos) for foodPos in newFood.asList())
+        foodpos = newFood.asList()
+        foodAgentDist = [manhattanDistance(newPos, fpos) for fpos in foodpos]
+        if len(foodAgentDist) == 0:
+            minFoodDist = 0.001
         else:
-            # If there's no food left, set distToClosestFood to infinity.
-            distToClosestFood = float('inf')
+            minFoodDist = min(foodAgentDist)
 
-        # Calculate a feature that represents the closeness to the nearest food.
-        # The closer the food, the higher the value.
-        closestFoodFeature = 1.0 / (1.0 + distToClosestFood)
+        ghostPos = [gs.configuration.pos for gs in newGhostStates]
+        ghostAgentDist = [manhattanDistance(newPos, ghostPos[i]) for i in range(len(ghostPos)) if newScaredTimes[i]==0]
+        if len(ghostAgentDist) == 0:
+            minGhostDist = newFood.width*newFood.height
+        else:
+            minGhostDist = max(min(ghostAgentDist), 2)
 
-        # Return the updated game score by combining the closestFoodFeature and ghostScore.
-        return successorGameState.getScore() + closestFoodFeature + ghostScore
-    
-        return successorGameState.getScore()
+        return successorGameState.getScore() + 10.0/minFoodDist - 20.0/minGhostDist
 
 def scoreEvaluationFunction(currentGameState):
     """
@@ -169,6 +150,53 @@ class MinimaxAgent(MultiAgentSearchAgent):
         Returns whether or not the game state is a losing state
         """
         "*** YOUR CODE HERE ***"
+        def value(gs, agentId, depth):
+            # print("value, agent: %d, depth: %d"%(agentId, depth))
+            if gs.isWin() or gs.isLose() or depth==0:
+                # print("Terminal State")
+                return (self.evaluationFunction(gs), None)
+            
+            if agentId == 0:
+                return max_value(gs, agentId, depth)
+            elif agentId <= gs.getNumAgents() - 1:
+                return min_value(gs, agentId, depth)
+
+        def max_value(gs, agentId, depth):
+            # print("max-value, agent: %d, depth: %d"%(agentId, depth))
+            v = -float("inf")
+            max_a = None
+
+            for action in gs.getLegalActions(agentId):
+                new_gs = gs.generateSuccessor(agentId, action)
+                new_v,_ = value(new_gs, 1, depth)
+                if new_v > v:
+                    v = new_v
+                    max_a = action
+            return v, max_a
+        
+        def min_value(gs, agentId, depth):
+            # print("min-value, agent: %d, depth: %d"%(agentId, depth))
+            v = float("inf")
+            min_a = None
+            lastGhostId = gs.getNumAgents() - 1
+
+            for action in gs.getLegalActions(agentId):
+                new_gs = gs.generateSuccessor(agentId, action)
+
+                if agentId < lastGhostId:
+                    new_v,_ = value(new_gs, agentId+1, depth)
+                elif agentId == lastGhostId:
+                    new_v,_ = value(new_gs, 0, depth-1)
+                else:
+                    new_v = float("inf") # This should not happen
+                
+                if new_v < v:
+                    v = new_v
+                    min_a = action
+            return v, min_a
+        
+        _, max_action = value(gameState, 0, self.depth)
+        return max_action
         util.raiseNotDefined()
 
 class AlphaBetaAgent(MultiAgentSearchAgent):
@@ -181,6 +209,59 @@ class AlphaBetaAgent(MultiAgentSearchAgent):
         Returns the minimax action using self.depth and self.evaluationFunction
         """
         "*** YOUR CODE HERE ***"
+        def value(gs, agentId, depth, alpha, beta):
+            # print("value, agent: %d, depth: %d"%(agentId, depth))
+            if gs.isWin() or gs.isLose() or depth==0:
+                # print("Terminal State")
+                return (self.evaluationFunction(gs), None)
+            
+            if agentId == 0:
+                return max_value(gs, agentId, depth, alpha, beta)
+            elif agentId <= gs.getNumAgents() - 1:
+                return min_value(gs, agentId, depth, alpha, beta)
+
+        def max_value(gs, agentId, depth, alpha, beta):
+            # print("max-value, agent: %d, depth: %d"%(agentId, depth))
+            v = -float("inf")
+            max_a = None
+
+            for action in gs.getLegalActions(agentId):
+                new_gs = gs.generateSuccessor(agentId, action)
+                new_v,_ = value(new_gs, 1, depth, alpha, beta)
+                if new_v > v:
+                    v = new_v
+                    max_a = action
+                if v > beta:
+                    return v, max_a
+                alpha = max(alpha, v)
+            return v, max_a
+        
+        def min_value(gs, agentId, depth, alpha, beta):
+            # print("min-value, agent: %d, depth: %d"%(agentId, depth))
+            v = float("inf")
+            min_a = None
+            lastGhostId = gs.getNumAgents() - 1
+
+            for action in gs.getLegalActions(agentId):
+                new_gs = gs.generateSuccessor(agentId, action)
+
+                if agentId < lastGhostId:
+                    new_v,_ = value(new_gs, agentId+1, depth, alpha, beta)
+                elif agentId == lastGhostId:
+                    new_v,_ = value(new_gs, 0, depth-1, alpha, beta)
+                else:
+                    new_v = float("inf") # This should not happen
+                
+                if new_v < v:
+                    v = new_v
+                    min_a = action
+                if v < alpha:
+                    return v, min_a
+                beta = min(beta, v)
+            return v, min_a
+        
+        _, max_action = value(gameState, 0, self.depth, -float("inf"), float("inf"))
+        return max_action
         util.raiseNotDefined()
 
 class ExpectimaxAgent(MultiAgentSearchAgent):
