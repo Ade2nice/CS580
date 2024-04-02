@@ -296,7 +296,11 @@ def getMostLikelyFoodHousePosition(evidence, bayesNet, eliminationOrder):
     (This should be a very short method.)
     """
     "*** YOUR CODE HERE ***"
-    util.raiseNotDefined()
+    factor = inference.inferenceByVariableElimination(bayesNet, FOOD_HOUSE_VAR,
+                                                      evidence, eliminationOrder)
+    return max([(assignment, factor.getProbability(assignment))
+                for assignment in factor.getAllPossibleAssignmentDicts()], key=lambda x: x[1])[0]
+    # util.raiseNotDefined()
     "*** END YOUR CODE HERE ***"
 
 
@@ -399,7 +403,17 @@ class VPIAgent(BayesAgent):
         rightExpectedValue = 0
 
         "*** YOUR CODE HERE ***"
-        util.raiseNotDefined()
+        factor = inference.inferenceByVariableElimination(self.bayesNet, HOUSE_VARS,
+                                                          evidence, eliminationOrder)
+        evidence.update({FOOD_HOUSE_VAR: TOP_LEFT_VAL, GHOST_HOUSE_VAR: TOP_RIGHT_VAL})
+        leftProb = factor.getProbability(evidence)
+
+        evidence.update({FOOD_HOUSE_VAR: TOP_RIGHT_VAL, GHOST_HOUSE_VAR: TOP_LEFT_VAL})
+        rightProb = factor.getProbability(evidence)
+
+        leftExpectedValue = leftProb * WON_GAME_REWARD + rightProb * GHOST_COLLISION_REWARD
+        rightExpectedValue = rightProb * WON_GAME_REWARD + leftProb * GHOST_COLLISION_REWARD
+        # util.raiseNotDefined()
         "*** END YOUR CODE HERE ***"
 
         return leftExpectedValue, rightExpectedValue
@@ -466,7 +480,11 @@ class VPIAgent(BayesAgent):
         expectedValue = 0
 
         "*** YOUR CODE HERE ***"
-        util.raiseNotDefined()
+        futureEvidences = self.getExplorationProbsAndOutcomes(evidence)
+        for futureEvidence in futureEvidences:
+            expectedValue += (futureEvidence[0] * max(self.computeEnterValues(
+                futureEvidence[1], enterEliminationOrder)))
+        # util.raiseNotDefined()
         "*** END YOUR CODE HERE ***"
 
         return expectedValue
