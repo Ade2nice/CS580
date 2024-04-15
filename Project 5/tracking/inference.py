@@ -102,13 +102,7 @@ class DiscreteDistribution(dict):
         0.0
         """
         "*** YOUR CODE HERE ***"
-        total = sum(weight for _, weight in items)
-        rand = random.uniform(0, total)
-        upto = 0
-        for item, weight in items:
-            if upto + weight >= rand:
-                return item
-            upto += weight
+        raiseNotDefined()
 
 
 class InferenceModule:
@@ -361,7 +355,7 @@ class ParticleFilter(InferenceModule):
         batch_size = self.numParticles // len(self.legalPositions)
         remainder = self.numParticles % len(self.legalPositions)
 
-        # Empty particle list
+        # Empty
         self.particles = []
 
         # Fill particles list with evenly distributed positions
