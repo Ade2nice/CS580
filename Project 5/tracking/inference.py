@@ -80,7 +80,7 @@ class DiscreteDistribution(dict):
         for i in self.keys():
             self[i] /= total
 
-    def sample(self, items):
+    def sample(self):
         """
         Draw a random sample from the distribution and return the key, weighted
         by the values associated with each key.
@@ -102,7 +102,14 @@ class DiscreteDistribution(dict):
         0.0
         """
         "*** YOUR CODE HERE ***"
-        raiseNotDefined()
+        items = self.items()
+        sum = self.total()
+        rand = random.random()
+        for item in items:
+            weight = item[1]/sum
+            # restrict the random in range
+            if rand <= weight: return item[0]
+            else: rand -= weight
 
 
 class InferenceModule:
