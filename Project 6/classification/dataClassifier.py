@@ -23,7 +23,6 @@ import mira
 import samples
 import sys
 import util
-import numpy as np
 from pacman import GameState
 
 TEST_SET_SIZE = 100
@@ -153,7 +152,38 @@ def enhancedPacmanFeatures(state, action):
     """
     features = util.Counter()
     "*** YOUR CODE HERE ***"
-    util.raiseNotDefined()
+    successor = state.generateSuccessor(0, action)
+
+    pacmanPos = successor.getPacmanPosition()
+    ghostsPos = successor.getGhostPositions()
+    capsulesPos = successor.getCapsules()
+    foodCount = successor.getFood().count()
+    foodsPos = successor.getFood().asList()
+
+    features['foodCount'] = foodCount
+    features['casuleCount'] = len(capsulesPos)
+
+    ghostsDist = [util.manhattanDistance(pacmanPos, g) for g in ghostsPos]
+    features['ghostDist'] = (min(ghostsDist) if len(ghostsDist) > 0 else (0.1))
+
+    # features['imGhost'] = ghostsDist.count(2)
+    if ghostsDist.count(1) == 0:
+        features['imGhost'] = 10000000000
+    else:
+        features['imGhost'] = 1.0 / ghostsDist.count(1)
+
+    foodsDist = [util.manhattanDistance(pacmanPos, g) for g in foodsPos]
+    features['foodDist'] = 1.0 / (min(foodsDist) if len(foodsDist) > 0 else (1.0 / 1.0))
+
+    capsulesDist = [util.manhattanDistance(pacmanPos, g) for g in capsulesPos]
+    features['capsuleDist'] = 1.0 / (min(capsulesDist) if len(capsulesDist) > 0 else (1.0 / 1.0))
+
+    numWalls = 5 - len(successor.getLegalPacmanActions())
+    if numWalls >= 1:
+        features['walls'] = 1
+    else:
+        features['walls'] = 0
+    # util.raiseNotDefined()
     return features
 
 
